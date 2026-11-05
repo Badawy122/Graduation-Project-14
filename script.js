@@ -36,7 +36,7 @@ const q=$('#q').value.trim(),fc=$('#fc').value,fs=$('#fs').value;
 let a=D.filter(d=>(!q||d.n.includes(q))&&(!fc||d.c===fc)&&(!fs||d.st===fs));
 const val=d=>({...d,...M(d)})[sortK];
 a.sort((x,y)=>{const p=val(x),r=val(y);return (p>r?1:p<r?-1:0)*sortD});
-$('#tb').innerHTML=a.map(d=>{const m=M(d);return `<tr><td><input type="checkbox" data-id="${d.id}" ${sel.includes(d.id)?'checked':''}></td><td>${d.n}</td><td><span class="tag">${d.c}</span></td><td class="s-${d.st}">● ${d.st}</td><td>${n0(d.b)}</td><td>${n0(d.s)}</td><td>${n1(m.ctr)}%</td><td>${n0(m.cpa)}</td><td>${n1(m.roas)}×</td></tr>`}).join('')||'<tr><td colspan="9">لا توجد حملات مطابقة.</td></tr>';
+$('#tb').innerHTML=a.map(d=>{const m=M(d);return `<tr><td><input type="checkbox" data-id="${d.id}" ${sel.includes(d.id)?'checked':''}></td><td><a href="#" class="lk" data-a="${d.id}">${d.n}</a></td><td><span class="tag">${d.c}</span></td><td class="s-${d.st}">● ${d.st}</td><td>${n0(d.b)}</td><td>${n0(d.s)}</td><td>${n1(m.ctr)}%</td><td>${n0(m.cpa)}</td><td>${n1(m.roas)}×</td></tr>`}).join('')||'<tr><td colspan="9">لا توجد حملات مطابقة.</td></tr>';
 }
 
 function cmp(){
@@ -61,7 +61,27 @@ $('#ct').innerHTML=c.map(x=>`<tr><td>${x.c}</td><td>${x.n}</td><td>${n0(x.b)}</t
 }
 
 function kpi(){$('#kt').innerHTML=D.map(d=>{const m=M(d),g=m.roas>=4?['ممتاز','good']:m.roas>=2?['جيد','mid']:['ضعيف','low'];return `<tr><td>${d.n}</td><td><span class="tag">${d.c}</span></td><td>${n1(m.ctr)}</td><td>${n1(m.cpc)}</td><td>${n0(m.cpa)}</td><td>${n1(m.roas)}×</td><td>${n0(m.roi)}</td><td class="${g[1]}">● ${g[0]}</td></tr>`}).join('')}
-const views=['dash','camps','cmp','chan','kpi'],fn={dash,camps,cmp,chan,kpi};
+let cur=1;
+function daily(d,n=10){const w=ph=>{const a=[...Array(n)].map((_,i)=>1+.45*Math.sin(d.id*1.7+i*.8+ph)+.2*Math.cos(i*1.3+d.id));const t=a.reduce((p,x)=>p+x,0);return a.map(x=>x/t)};return{s:w(0).map(x=>x*d.s),r:w(1.1).map(x=>x*d.r)}}
+function lineChart(a,b){const W=520,H=220,pl=44,pr=10,pt=12,pb=26,n=a.length,mx=Math.max(...a,...b)*1.1;
+const x=i=>pl+i*(W-pl-pr)/(n-1),y=v=>pt+(H-pt-pb)*(1-v/mx),pts=s=>s.map((v,i)=>x(i)+','+y(v)).join(' ');
+let g='';for(let k=0;k<=4;k++){const v=mx*k/4;g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--bd)"/><text x="${pl-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--mut)">${n0(v/1000)}ك</text>`}
+a.forEach((_,i)=>{g+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--mut)">${i+1}</text>`});
+const dots=(s,c)=>s.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${c}"/>`).join('');
+return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;direction:ltr">${g}<polyline points="${pts(a)}" fill="none" stroke="var(--sky)" stroke-width="2.5"/><polyline points="${pts(b)}" fill="none" stroke="var(--navy)" stroke-width="2.5"/>${dots(a,'var(--sky)')}${dots(b,'var(--navy)')}</svg><div class="lg"><span><i style="background:var(--sky)"></i>الإنفاق</span><span><i style="background:var(--navy)"></i>الإيراد</span><span>المحور السفلي: رقم اليوم</span></div>`}
+function ana(){
+$('#as').innerHTML=D.map(d=>`<option value="${d.id}" ${d.id===cur?'selected':''}>${d.n}</option>`).join('');
+const d=D.find(x=>x.id===cur)||D[0],m=M(d),g=m.roas>=4?['ممتاز','good']:m.roas>=2?['جيد','mid']:['ضعيف','low'];
+$('#ast').innerHTML=`<span class="tag">${d.c}</span> <span class="s-${d.st}">● ${d.st}</span> <span class="${g[1]}">● تقييم: ${g[0]}</span>`;
+$('#ak').innerHTML=[['الإيراد',n0(d.r)+' ج'],['المصروف',n0(d.s)+' ج'],['ROAS',n1(m.roas)+'×'],['ROI',n0(m.roi)+'%'],['CPA',n0(m.cpa)+' ج'],['التحويلات',n0(d.v)]].map(([a,b])=>`<div class="card kpi"><small>${a}</small><b>${b}</b></div>`).join('');
+$('#fun').innerHTML=`<div class="fn" style="width:100%;background:var(--navy)">ظهور: ${n0(d.i)}</div><div class="fr">▼ معدل النقر CTR ${n1(m.ctr)}%</div><div class="fn" style="width:68%;background:var(--pri)">نقرات: ${n0(d.k)}</div><div class="fr">▼ معدل التحويل ${n1(d.v/d.k*100)}%</div><div class="fn" style="width:38%;background:var(--sky);color:var(--navy)">تحويلات: ${n0(d.v)}</div>`;
+const p=Math.min(100,m.burn),R=52,C=2*Math.PI*R,col=p>90?'var(--bad)':p>70?'var(--warn)':'var(--pri)';
+$('#don').innerHTML=`<div class="dn"><svg viewBox="0 0 140 140" width="150" height="150"><circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--pri2)" stroke-width="16"/><circle cx="70" cy="70" r="${R}" fill="none" stroke="${col}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${C*p/100} ${C}" transform="rotate(-90 70 70)"/><text x="70" y="76" text-anchor="middle" font-size="22" font-weight="700" fill="var(--tx)">${n0(m.burn)}%</text></svg><ul><li>الميزانية: <b>${n0(d.b)}</b> ج</li><li>المصروف: <b>${n0(d.s)}</b> ج</li><li>المتبقي: <b>${n0(Math.max(0,d.b-d.s))}</b> ج</li></ul></div>`;
+const z=daily(d);$('#trd').innerHTML=lineChart(z.s,z.r);
+const t=sum(D),av={ctr:t.k/t.i*100,cpc:t.s/t.k,cpa:t.s/t.v,roas:t.r/t.s};
+$('#vs').innerHTML=[['CTR %','ctr',1,n1],['ROAS ×','roas',1,n1],['CPC','cpc',-1,n1],['CPA','cpa',-1,n0]].map(([l,k,dir,f])=>{const v=m[k],a=av[k],mx=Math.max(v,a);return bar(l,v/mx*100,f(v)+(v*dir>a*dir?' ✓':''),'rev')+bar('المتوسط',a/mx*100,f(a),'sp')}).join('')+'<p style="font-size:12px;color:var(--mut)">✓ = أفضل من المتوسط (الأقل أفضل في CPC وCPA)</p>';
+}
+const views=['dash','camps','cmp','chan','kpi','ana'],fn={dash,camps,cmp,chan,kpi,ana};
 function show(v){views.forEach(x=>{$('#'+x).classList.toggle('hide',x!==v)});document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));fn[v]();scrollTo(0,0)}
 $('#nav').onclick=e=>{const v=e.target.dataset.v;if(v)show(v)};
 $('#fc').innerHTML='<option value="">كل القنوات</option>'+CH.map(c=>`<option>${c}</option>`).join('');
@@ -70,14 +90,20 @@ $('#fcSel').innerHTML=CH.map(c=>`<option>${c}</option>`).join('');
 $('#th').onclick=e=>{const k=e.target.dataset.k;if(!k)return;sortD=sortK===k?-sortD:1;sortK=k;camps()};
 $('#tb').onchange=e=>{const id=+e.target.dataset.id;if(e.target.checked){if(sel.length>=3){e.target.checked=false;return}sel.push(id)}else sel=sel.filter(i=>i!==id)};
 $('#chips').onclick=e=>{const id=+e.target.dataset.id;if(!id)return;if(sel.includes(id))sel=sel.filter(i=>i!==id);else if(sel.length<3)sel.push(id);cmp()};
+$('#as').onchange=e=>{cur=+e.target.value;ana()};
+$('#tb').onclick=e=>{const a=e.target.closest('[data-a]');if(a){e.preventDefault();cur=+a.dataset.a;show('ana')}};
 $('#add').onclick=()=>$('#dlg').showModal();
 $('#fm').onsubmit=e=>{if(e.submitter.value!=='ok')return;const f=new FormData($('#fm'));const o={id:nid++,st:f.get('st'),c:f.get('c'),n:f.get('n')};['b','s','i','k','v','r'].forEach(k=>o[k]=+f.get(k));D.push(o);$('#fm').reset();camps();dash()};
 show('dash');
 
+const secs=['top','problem','scope','features','pricing','faq','contact'];
+function setActive(k){document.querySelectorAll('#site button').forEach(b=>b.classList.toggle('on',k==='app'?b.dataset.p==='app':b.dataset.p==='home'&&b.dataset.s===k))}
+function spy(){if($('#home').classList.contains('hide'))return;let c='top';secs.forEach(id=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<=140)c=id});if(innerHeight+scrollY>=document.body.scrollHeight-4)c='contact';setActive(c)}
+addEventListener('scroll',spy,{passive:true});
 function go(p,s,v){
 $('#home').classList.toggle('hide',p!=='home');$('#app').classList.toggle('hide',p!=='app');
-if(p==='app')show(v||'dash');
-else if(s&&s!=='top'){const el=document.getElementById(s);el&&el.scrollIntoView({behavior:'smooth'})}else scrollTo(0,0);
+if(p==='app'){show(v||'dash');setActive('app')}
+else{setActive(s||'top');if(s&&s!=='top'){const el=document.getElementById(s);el&&el.scrollIntoView({behavior:'smooth'})}else scrollTo(0,0)}
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(b)go(b.dataset.p,b.dataset.s,b.dataset.v)});
 $('#cf').onsubmit=e=>{e.preventDefault();$('#cm').textContent='شكرًا '+e.target.n.value+'، وصلت رسالتك وهنرد عليك قريبًا.';e.target.reset()};
