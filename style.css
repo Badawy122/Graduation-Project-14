@@ -8,7 +8,9 @@ header .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-blo
 .logo{font-weight:700;font-size:20px;color:var(--pri);direction:ltr}
 nav{display:flex;gap:4px;flex-wrap:wrap}
 nav button{background:none;border:0;color:var(--mut);font:inherit;padding:6px 14px;border-radius:8px;cursor:pointer}
-nav button.on{background:var(--pri2);color:var(--pri);font-weight:600}
+nav button{transition:background .15s,color .15s}
+nav button.on{background:#2563EB;color:#fff;font-weight:600}
+#site .btn.on{box-shadow:0 0 0 3px #60A5FA}
 .hero{padding:22px 0 6px}
 .hero h1{margin:0 0 4px;font-size:26px}
 .hero p{margin:0;color:var(--mut)}
@@ -95,3 +97,11 @@ details p{margin-top:8px}
 .hero2>.tag{background:#60A5FA;color:#142B4A;font-weight:600}
 .hero2 .btn{background:#fff;color:#142B4A}
 .hero2 .btn.g{background:#60A5FA;color:#142B4A}
+
+.lk{color:var(--pri);text-decoration:none;font-weight:600}
+.fn{margin:0 auto;border-radius:8px;padding:8px 12px;text-align:center;color:#fff;font-size:14px}
+.fr{text-align:center;color:var(--mut);font-size:12px;padding:3px 0}
+.dn{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center}
+.dn ul{list-style:none;padding:0;margin:0;font-size:14px;line-height:2}
+.lg{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:4px}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px}
